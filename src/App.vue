@@ -1,24 +1,23 @@
 <template>
-  <div class = "flex flex-col min-h-screen font-Roboto" >
-    <Header/>
+  <div class = "flex flex-col min-h-screen font-Roboto mr-20" >
+    <HeaderComponent/>
     <RouterView/>
-    <site-navigation/>
-
   </div>
 </template>
 <script>
-import Header from "./components/Header.vue";
-import { RouterView}  from "vue-router";
-import SiteNavigation from "@/components/SiteNavigation.vue";
+import HeaderComponent from "./components/HeaderComponent.vue";
 
 export default {
   name: "App",
   components: {
-    Header
+    HeaderComponent
   },
 };
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
+.mr-20{
+      margin-right: 20rem;
 
+}
 </style>
