@@ -14,7 +14,12 @@
             <p class="mx-auto mt-6 max-w-2xl text-base leading-8 text-gray-600 text-center">
                 Urban forests, comprised of city trees, are crucial for sustainable cities, enhancing health, air quality, carbon storage, and temperature regulation. A new dataset containing information on 5.6 million trees from 63 major US cities has been compiled, including details on location, species, nativity, health, and more. This dataset can be used in combination with citizen science data to design diverse and rich urban ecosystems.
             </p>
-            <div class="flex justify-center py-3" id="A1chart1">
+            <div>
+                <label for="citySelect">Select City:</label>
+                <select id="citySelect">
+                </select>
+            </div>
+            <div class="flex justify-center py-3 hidden" id="A1chart1">
                 <div class="tooltip A1chart1Inner"></div>
             </div>
         </div>
@@ -30,37 +35,71 @@ export default {
         // Chart dimensions
         const margin = { top: 10, right: 100, bottom: 50, left: 100 };
         const width = 800 - margin.left - margin.right;
-        const height = 500 - margin.top - margin.bottom;
+        const height = 1000 - margin.top - margin.bottom;
 
         // Create SVG element
         const svg = d3.select("#A1chart1")
             .append("svg")
-            .attr("viewBox", `0 0 1000 500`)
+            .attr("viewBox", `0 0 1000 1000`)
             .append("g")
             .attr("transform", `translate(${margin.left},${margin.top})`);
 
         // Define data URL
-        const dataUrl = "/data.csv";
+        const dataUrl = "/species.csv";
+        
         // Load data
         d3.csv(dataUrl).then(function (data) {
-            // Draw chart
-            drawChart(data);
+            // Create a set of unique cities from the data
+            const cities = new Set(data.map(d => d.city));
+            
+            // Populate the city selection dropdown
+            const citySelect = d3.select("#citySelect");
+            citySelect
+                .selectAll("option")
+                .data(Array.from(cities))
+                .enter()
+                .append("option")
+                .text(city => city);
+
+            // Initialize the chart with all data
+            //drawChart(data);
+
+            // Add change event listener to the city selection
+            citySelect.on("change", function () {
+                svg.selectAll("*").remove();
+                const selectedCity = this.value;
+                // Filter the data based on the selected city
+                const filteredData = data.filter(d => d.city === selectedCity);
+                console.log(filteredData);
+                // Update the chart with filtered data
+                // Use reduce to find the maximum count
+                const maxCount = filteredData.reduce((max, entry) => {
+                    const count = parseInt(entry.count, 10);
+                    return count > max ? count : max;
+                }, -1);
+
+                console.log("Maximum count value:", maxCount);
+                drawChart(filteredData, maxCount);
+                document.getElementById("A1chart1").classList.remove("hidden");
+            });
         }).catch(function (error) {
             console.error("Error loading data:", error);
         });
 
         // Function to draw the chart
-        function drawChart(data) {
+        function drawChart(data, maxCount) {
+            console.log(maxCount);
             // Create X scale
             const x = d3.scaleLinear()
-                .domain([0, 1300])
+                .domain([0, maxCount])
                 .range([0, width]);
 
             // Create Y scale
             const y = d3.scaleBand()
                 .range([0, height])
                 .domain(data.map(d => d.common_name))
-                .padding(0.1);
+                .padding(0.1)
+                .paddingOuter(0.2);
 
             // Append X axis
             svg.append("g")
@@ -83,9 +122,9 @@ export default {
             function mouseover(event, d) {
                 const totalAmount = d.count;
                 const treeType = d.common_name;
-                const averageHeight = d.average_height;
+                const averageHeight = d.mean_h;
                 tooltip
-                    .html(`Tree Type: ${treeType}<br>Total Amount: ${totalAmount}<br>Canopy average_height: ${averageHeight}`)
+                    .html(`Tree Type: ${treeType}<br>Total Amount: ${totalAmount}<br>Canopy mean_h: ${averageHeight}`)
                     .style("opacity", 1);
                 d3.select(this).attr("fill", "#0e6efc");
             }
@@ -132,12 +171,12 @@ export default {
                 .append("text")
                 .attr("class", "label")
                 .text(d => d.count)
-                .attr("x", d => x(d.count) - 30)
-                .attr("y", d => y(d.common_name) + 14)
+                .attr("x", d => x(d.count) + 15)
+                .attr("y", d => y(d.common_name) + 10)
                 .attr("text-anchor", "right")
                 .attr("font-family", "sans-serif")
                 .attr("font-size", "11px")
-                .attr("fill", d => scolor2(d.count));
+                .attr("fill", "black");
 
             // Animation
             bars.transition()
