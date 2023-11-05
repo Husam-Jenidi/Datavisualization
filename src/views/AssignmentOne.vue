@@ -45,7 +45,7 @@ export default {
             .attr("transform", `translate(${margin.left},${margin.top})`);
 
         // Define data URL
-        const dataUrl = "/species.csv";
+        const dataUrl = "/Datavisualization/species.csv";
         
         // Load data
         d3.csv(dataUrl).then(function (data) {
