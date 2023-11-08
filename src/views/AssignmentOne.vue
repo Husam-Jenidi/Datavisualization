@@ -150,7 +150,6 @@ export default {
       });
 
       // Heatmap
-      // const states = Array.from(new Set(data.map((d) => d.state)));
 
       // Populate the state selection dropdown
       const stateSelect = d3.select('#stateSelect');
